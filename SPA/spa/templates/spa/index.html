@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'spa/style.css' %}">
+    <meta charset="UTF-8">
+    <title>Comments</title>
+</head>
+<body>
+    <div class="message">
+        <div class="header">
+            <img>
+            <p class="name">Name</p>
+            <p class="date">Date</p>
+            <button name="fork"></button>
+            <button name="expand"></button>
+            <div class="rating">
+                <button>
+                    <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
+                </button>
+                <p>0</p>
+                <button>
+                    <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
+                </button>
+            </div>
+        </div>
+        <p>Text text text txt! text/text text. texting text is text text?</p>
+        <a>File preview</a>
+    </div>
+<!--    <form class="message-form">-->
+<!--        <div>-->
+<!--            <input type="text" name="UserName" placeholder="User Name" required>-->
+<!--            <input type="email" name="E-mail" placeholder="E-mail" required>-->
+<!--            <input type="url" name="HomePage" placeholder="Home Page">-->
+<!--            <input type="file" name="File">-->
+<!--        </div>-->
+
+<!--        <textarea name="Text"></textarea>-->
+<!--        <input type="submit" >-->
+<!--    </form>-->
+    <form class="message-form" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            {{ form.username.errors }}
+            {{ form.username }}
+
+            {{ form.password.errors }}
+            {{ form.password }}
+
+            {{ form.email.errors }}
+            {{ form.email }}
+
+            {{ form.homepage.errors }}
+            {{ form.homepage }}
+        </div>
+        <div>
+            {{ form.avatar.errors }}
+            {{ form.avatar.label_tag }}
+            {{ form.avatar }}
+
+            {{ form.attachment.errors }}
+            {{ form.attachment.label_tag }}
+            {{ form.attachment }}
+
+        </div>
+        {{ form.text.errors }}
+        {{ form.text }}
+
+        <input type="submit" value="Submit">
+    </form>
+    <div>1-25</div>
+</body>
+</html>
