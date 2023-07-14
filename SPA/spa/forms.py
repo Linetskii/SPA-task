@@ -48,3 +48,7 @@ class MessageForm(forms.Form):
             attrs={'placeholder': 'Password'}
         )
     )
+    prev_post = forms.CharField(
+        widget=forms.HiddenInput(
+        )
+    )

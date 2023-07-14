@@ -9,7 +9,7 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     email = models.EmailField()
     homepage = models.URLField(null=True)
-    avatar = ResizedImageField(size=[320, 240])
+    avatar = ResizedImageField(size=[320, 240], upload_to='img')
     password = models.CharField(max_length=30)
 
 
@@ -21,3 +21,4 @@ class Post(models.Model):
     file = models.FileField(upload_to="attachments/")
     text = models.CharField(max_length=200)
     prev_post = models.PositiveIntegerField(default=0)
+    rating = models.IntegerField(default=0)

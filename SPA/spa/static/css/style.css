@@ -18,15 +18,14 @@ body {
 /* message */
 
 .message {
-    width: 50%;
-    margin: 15px auto 15px auto;
+    margin: 15px auto 15px 30px;
     background: var(--body-color);
     border-radius: 10px;
 }
 
 .header {
     display: flex;
-    flex-direction: row;
+    flex-direction: row wrap;
     align-items: center;
     background: var(--secondary-bg);
     border-radius: 10px;
@@ -81,10 +80,9 @@ body {
 /* form */
 
 .message-form {
-    display: flex;
+    display: none;
     flex-direction: column;
-    width: 50%;
-    margin: 15px auto 15px auto;
+    margin: 15px auto 15px 30px;
     background: var(--secondary-bg);
     border-radius: 10px;
     align-items: center;

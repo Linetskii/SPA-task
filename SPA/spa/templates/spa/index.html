@@ -2,32 +2,14 @@
 <html lang="en">
 <head>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'spa/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <meta charset="UTF-8">
     <title>Comments</title>
 </head>
 <body>
-    <div class="message">
-        <div class="header">
-            <img>
-            <p class="name">Name</p>
-            <p class="date">Date</p>
-            <button name="fork"></button>
-            <button name="expand"></button>
-            <div class="rating">
-                <button>
-                    <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
-                </button>
-                <p>0</p>
-                <button>
-                    <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
-                </button>
-            </div>
-        </div>
-        <p>Text text text txt! text/text text. texting text is text text?</p>
-        <a>File preview</a>
-    </div>
-    <form class="message-form" action="" method="post" enctype="multipart/form-data">
+    <button name="new_message" onclick="showForm(0)">New message</button>
+    <div id="0"></div>
+    <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div>
             {{ form.username.errors }}
@@ -54,9 +36,101 @@
         </div>
         {{ form.text.errors }}
         {{ form.text }}
-
-        <input type="submit" value="Submit">
+        <button name="prev_post" value="0" type="submit">Reply</button>
     </form>
+    <script>
+        "use strict";
+
+        function showForm(id) {
+            const formDOM = document.getElementById("form-" + id)
+            if (formDOM.style.display === "flex") {
+                formDOM.style.display = "none"
+            } else {
+                formDOM.style.display = "flex";
+            };
+        };
+
+        async function showAnswers(prev_post) {
+            const url = `answers/?prev_post=${prev_post}` ;
+            let data = await fetch(url)
+                .then(response => response.json())
+                .then((data) => {
+                    return data.data;
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            console.log(data);
+            const expansionDiv = document.getElementById(prev_post);
+            const expandBtn = document.getElementById("expand-" + prev_post);
+            if (expansionDiv.innerHTML !== "") {
+                expansionDiv.innerHTML = "";
+
+            } else {
+                for (let i =0; i < data.length; i++) {
+                    expansionDiv.insertAdjacentHTML(
+                        "beforeend",
+                        `<div class="message">
+                            <div class="header">
+                                <img src="media/${data[i].user__avatar}"/>
+                                <p class="name">${data[i].user__username}</p>
+                                <p class="date">>>${data[i].id}</p>
+                                <p class="date">${data[i].date}</p>
+                                <p class="date">${data[i].user__email}</p>
+                                <p class="date">${data[i].user__homepage}</p>
+                                <button name="fork" onclick="showForm(${data[i].id})">Fork</button>
+                                <button name="expand" onclick="showAnswers(${data[i].id})">Expand</button>
+                                <div class="rating">
+                                    <button>
+                                        <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
+                                    </button>
+                                    <p>0</p>
+                                    <button>
+                                        <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
+                                    </button>
+                                </div>
+                            </div>
+                            <p>${data[i].text}</p>
+                            <a href="media/${data[i].file}">File</a>
+                            <div id="${data[i].id}"></div>
+                            <form id="form-${data[i].id}" class="message-form" action="" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div>
+                                    {{ form.username.errors }}
+                                    {{ form.username }}
+
+                                    {{ form.password.errors }}
+                                    {{ form.password }}
+
+                                    {{ form.email.errors }}
+                                    {{ form.email }}
+
+                                    {{ form.homepage.errors }}
+                                    {{ form.homepage }}
+                                </div>
+                                <div>
+                                    {{ form.avatar.errors }}
+                                    {{ form.avatar.label_tag }}
+                                    {{ form.avatar }}
+
+                                    {{ form.attachment.errors }}
+                                    {{ form.attachment.label_tag }}
+                                    {{ form.attachment }}
+
+                                </div>
+                                {{ form.text.errors }}
+                                {{ form.text }}
+
+                                <button name="prev_post" value="${data[i].id}" type="submit">Reply</button>
+                            </form>
+                        </div>`
+                    );
+                };
+            };
+        };
+
+        showAnswers(0);
+    </script>
     <div>1-25</div>
 </body>
 </html>
