@@ -110,3 +110,7 @@ body {
 .message-form > input[type="submit"] {
     margin: 10px;
 }
+
+.format-panel {
+    margin: 10px auto 10px 5%;
+}

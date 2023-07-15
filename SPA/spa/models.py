@@ -21,4 +21,4 @@ class Post(models.Model):
     file = models.FileField(upload_to="attachments/")
     text = models.CharField(max_length=200)
     prev_post = models.PositiveIntegerField(default=0)
-    rating = models.IntegerField(default=0)
+    # rating = models.IntegerField(default=0)

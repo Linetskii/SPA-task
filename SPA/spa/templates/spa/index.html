@@ -7,10 +7,17 @@
     <title>Comments</title>
 </head>
 <body>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <button name="new_message" onclick="showForm(0)">New message</button>
-    <div id="0"></div>
     <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+
         <div>
             {{ form.username.errors }}
             {{ form.username }}
@@ -34,17 +41,27 @@
             {{ form.attachment }}
 
         </div>
+         <span class="format-panel">
+            <button class="format-btn" type="button" onclick="insertTag(0, 'strong')"><strong>Bold</strong></button>
+            <button class="format-btn" type="button" onclick="insertTag(0, 'i')"><i>Italic</i></button>
+            <button class="format-btn" type="button" onclick="insertTag(0, 'code')"><code>Code</code></button>
+            <button class="format-btn" type="button" onclick="insertRef(0)"><a>Link</a></button>
+            <button class="format-btn" type="button" onclick="insertSimple(0, 'br')">Break</button>
+            <button class="format-btn" type="button" onclick="previewMessage(0)">Preview</button>
+        </span>
         {{ form.text.errors }}
         {{ form.text }}
         <button name="prev_post" value="0" type="submit">Reply</button>
     </form>
+    <div id="preview-0"></div>
+    <div id="0"></div>
     <script>
         "use strict";
 
         function showForm(id) {
-            const formDOM = document.getElementById("form-" + id)
+            const formDOM = document.getElementById("form-" + id);
             if (formDOM.style.display === "flex") {
-                formDOM.style.display = "none"
+                formDOM.style.display = "none";
             } else {
                 formDOM.style.display = "flex";
             };
@@ -92,7 +109,6 @@
                             </div>
                             <p>${data[i].text}</p>
                             <a href="media/${data[i].file}">File</a>
-                            <div id="${data[i].id}"></div>
                             <form id="form-${data[i].id}" class="message-form" action="" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div>
@@ -118,18 +134,72 @@
                                     {{ form.attachment }}
 
                                 </div>
+                                <span class="format-panel">
+                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'strong')"><strong>Bold</strong></button>
+                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'i')"><i>Italic</i></button>
+                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'code')"><code>Code</code></button>
+                                    <button class="format-btn" type="button" onclick="insertSimple(${data[i].id}, 'br')">Break</button>
+                                    <button class="format-btn" type="button" onclick="insertRef(${data[i].id})"><a>Link</a></button>
+                                    <button class="format-btn" type="button" onclick="previewMessage(${data[i].id})">Preview</button>
+                                </span>
                                 {{ form.text.errors }}
                                 {{ form.text }}
 
                                 <button name="prev_post" value="${data[i].id}" type="submit">Reply</button>
                             </form>
+                            <div id="preview-${data[i].id}"></div>
+                            <div id="${data[i].id}"></div>
                         </div>`
                     );
                 };
             };
         };
 
+        function insertSimple(id, tag) {
+            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
+            let to = messageText.selectionEnd;
+            messageText.value = messageText.value.substring(0, to) + '</' + tag + '>\r\n' + messageText.value.substring((to));
+            messageText.focus();
+            // select the content
+            messageText.setSelectionRange((to + tag.length + 3), (to + tag.length + 3));
+        };
+
+        function insertTag(id, tag) {
+            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
+            let from = messageText.selectionStart;
+            let to = messageText.selectionEnd;
+            let selectedText = messageText.value.substring(from, to);
+            messageText.value = messageText.value.substring(0, from) + '<' + tag + '>' + selectedText + '</' + tag + '>' + messageText.value.substring(to);
+            messageText.focus();
+            // select the content
+            messageText.setSelectionRange((from + tag.length + 2), (to + tag.length + 2));
+        };
+
+        function insertRef(id) {
+            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
+            let from = messageText.selectionStart;
+            let to = messageText.selectionEnd;
+            let selectedText = messageText.value.substring(from, to);
+            messageText.value = messageText.value.substring(0, from) + '<a href="' + selectedText + '"></a>' + messageText.value.substring(to);
+            messageText.focus();
+            // set the caret between tags
+            messageText.setSelectionRange((11 + to), (11 + to));
+        };
+
+        function previewMessage(id) {
+            const previewDiv = document.getElementById("preview-" + id);
+            const messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
+            messageText.focus();
+            messageText.select();
+            previewDiv.innerHTML = ""
+            previewDiv.insertAdjacentHTML(
+                    "afterbegin",
+                    `<div class=message>${messageText.value}</div>`
+                );
+        };
+
         showAnswers(0);
+
     </script>
     <div>1-25</div>
 </body>
