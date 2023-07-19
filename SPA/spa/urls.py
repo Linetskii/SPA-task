@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.IndexView.as_view(), name='index'),
-    re_path("^answers/", views.answers, name="answers")
+    re_path("^answers/", views.answers, name="answers"),
 ]

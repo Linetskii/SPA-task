@@ -2,17 +2,21 @@
 from datetime import datetime, timezone
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from .forms import MessageForm
 from .models import User, Post
+from django.utils.safestring import mark_safe
 
 
 class IndexView(ListView):
     template_name = 'spa/index.html'
     model = Post
-    context_object_name = 'posts'
+    paginate_by = 3
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("user").filter(prev_post=0)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -31,7 +35,6 @@ class IndexView(ListView):
             except ObjectDoesNotExist:
                 messages.add_message(request, messages.INFO, "Authorisation failed")
                 user_object = None
-
 
             if user_object is None:
                 User.objects.create(
@@ -69,10 +72,12 @@ class IndexView(ListView):
 
 
 def answers(request):
-    pp = int(request.GET.get('prev_post'))
-    answers = Post.objects.prefetch_related("user").filter(prev_post=pp).values(
-        'id', 'date', 'file', 'text', 'user__username', 'user__email', 'user__homepage', 'user__avatar'
+    prev_post = int(request.GET.get('prev_post'))
+    answers = Post.objects.prefetch_related("user").filter(prev_post=prev_post).values(
+        'id', 'date', 'file', 'text', 'n_answers', 'user__username', 'user__email', 'user__homepage', 'user__avatar'
     )
+    count = []
+    for i in answers:
+        count.append(Post.objects.filter(prev_post=i.get('id')).count())
     return JsonResponse({'data': list(answers)}, safe="false")
 
-# def send_message(request):

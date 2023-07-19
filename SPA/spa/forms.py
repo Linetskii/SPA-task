@@ -1,6 +1,7 @@
 """SPA forms"""
 from django import forms
-from django.core import validators
+from django.core.validators import FileExtensionValidator
+
 
 
 class MessageForm(forms.Form):
@@ -10,7 +11,10 @@ class MessageForm(forms.Form):
         # required=False,
         widget=forms.ClearableFileInput(
             attrs={'value': 'Avatar'}
-        )
+        ),
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'gif', 'png', ])
+        ]
     )
     username = forms.CharField(
         min_length=3,
@@ -35,12 +39,18 @@ class MessageForm(forms.Form):
         )
     )
     text = forms.CharField(
-        min_length=8,
+        min_length=2,
         widget=forms.Textarea(
             attrs={'placeholder': 'Message'}
         )
     )
-    attachment = forms.FileField(required=False)
+    attachment = forms.FileField(
+        required=False,
+        max_length=800 * 1024,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['txt', 'jpg', 'jpeg', 'gif', 'png',])
+        ]
+    )
     password = forms.CharField(
         min_length=8,
         max_length=25,

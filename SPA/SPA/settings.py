@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_bleach",
     "spa"
 ]
 
@@ -128,3 +129,12 @@ MEDIA_URL = "media/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png', ]
+
+ALLOWED_TEXT_EXTENSIONS = ['txt', ]
+
+BLEACH_ALLOWED_TAGS = ['strong', 'i', 'a', 'br', 'code']
+BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title']
+BLEACH_STRIP_TAGS = False
+BLEACH_STRIP_COMMENTS = False

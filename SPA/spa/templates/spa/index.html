@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load bleach_tags %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <meta charset="UTF-8">
@@ -15,60 +16,108 @@
     </ul>
     {% endif %}
     <button name="new_message" onclick="showForm(0)">New message</button>
-    <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <div>
-            {{ form.username.errors }}
-            {{ form.username }}
-
-            {{ form.password.errors }}
-            {{ form.password }}
-
-            {{ form.email.errors }}
-            {{ form.email }}
-
-            {{ form.homepage.errors }}
-            {{ form.homepage }}
+    <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
+<!--    <div id="preview-0"></div>-->
+<!--    <div id="0"></div>-->
+    {% for message in page_obj %}
+        <div class="message">
+            <div class="header">
+                <img src="media/{{ message.user.avatar }}"/>
+                <p class="name">{{ message.user.username }}</p>
+                <p class="date">>>{{ message.id }}</p>
+                <p class="date">{{ message.date }}</p>
+                <p class="date">{{ message.user.email }}</p>
+                <p class="date">{{ message.user.homepage }}</p>
+                <button name="fork" onclick="showForm({{ message.id }})">Fork</button>
+                <button
+                        id="answers-{{ message.id }}" name="expand" onclick="showAnswers({{ message.id }})"
+                >{{ message.n_answers }} answers</button>
+                <div class="rating">
+                    <button>
+                        <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
+                    </button>
+                    <p>0</p>
+                    <button>
+                        <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
+                    </button>
+                </div>
+            </div>
+            <p>{{ message.text|bleach}}</p>
+            <a href="media/{{ message.file }}">File</a>
+            <form id="form-{{ message.id }}" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
+            <div id="preview-{{ message.id }}"></div>
+            <div id="{{ message.id }}"></div>
         </div>
-        <div>
-            {{ form.avatar.errors }}
-            {{ form.avatar.label_tag }}
-            {{ form.avatar }}
+    {% endfor %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
 
-            {{ form.attachment.errors }}
-            {{ form.attachment.label_tag }}
-            {{ form.attachment }}
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
 
-        </div>
-         <span class="format-panel">
-            <button class="format-btn" type="button" onclick="insertTag(0, 'strong')"><strong>Bold</strong></button>
-            <button class="format-btn" type="button" onclick="insertTag(0, 'i')"><i>Italic</i></button>
-            <button class="format-btn" type="button" onclick="insertTag(0, 'code')"><code>Code</code></button>
-            <button class="format-btn" type="button" onclick="insertRef(0)"><a>Link</a></button>
-            <button class="format-btn" type="button" onclick="insertSimple(0, 'br')">Break</button>
-            <button class="format-btn" type="button" onclick="previewMessage(0)">Preview</button>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
         </span>
-        {{ form.text.errors }}
-        {{ form.text }}
-        <button name="prev_post" value="0" type="submit">Reply</button>
-    </form>
-    <div id="preview-0"></div>
-    <div id="0"></div>
+    </div>
     <script>
         "use strict";
 
         function showForm(id) {
             const formDOM = document.getElementById("form-" + id);
-            if (formDOM.style.display === "flex") {
-                formDOM.style.display = "none";
+            if (formDOM.innerHTML === "") {
+                formDOM.insertAdjacentHTML(
+                "beforeend",
+                `   {% csrf_token %}
+                    <div>
+                        {{ form.username.errors }}
+                        {{ form.username }}
+
+                        {{ form.password.errors }}
+                        {{ form.password }}
+
+                        {{ form.email.errors }}
+                        {{ form.email }}
+
+                        {{ form.homepage.errors }}
+                        {{ form.homepage }}
+                    </div>
+                    <div>
+                        {{ form.avatar.errors }}
+                        {{ form.avatar.label_tag }}
+                        {{ form.avatar }}
+
+                        {{ form.attachment.errors }}
+                        {{ form.attachment.label_tag }}
+                        {{ form.attachment }}
+
+                    </div>
+                    <span class="format-panel">
+                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'strong')"><strong>Bold</strong></button>
+                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'i')"><i>Italic</i></button>
+                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'code')"><code>Code</code></button>
+                        <button class="format-btn" type="button" onclick="insertSimple(${id}, 'br')">Break</button>
+                        <button class="format-btn" type="button" onclick="insertRef(${id})"><a>Link</a></button>
+                        <button class="format-btn" type="button" onclick="previewMessage(${id})">Preview</button>
+                    </span>
+                    {{ form.text.errors }}
+                    {{ form.text }}
+                    <button name="prev_post" value="${id}" type="submit">Reply</button>
+                    <div id="preview-${id}"></div>`
+                );
             } else {
-                formDOM.style.display = "flex";
+                formDOM.innerHTML = "";
             };
         };
 
         async function showAnswers(prev_post) {
-            const url = `answers/?prev_post=${prev_post}` ;
+            const url = `answers/?prev_post=${prev_post}`;
             let data = await fetch(url)
                 .then(response => response.json())
                 .then((data) => {
@@ -84,7 +133,7 @@
                 expansionDiv.innerHTML = "";
 
             } else {
-                for (let i =0; i < data.length; i++) {
+                for (let i = 0; i < data.length; i++) {
                     expansionDiv.insertAdjacentHTML(
                         "beforeend",
                         `<div class="message">
@@ -96,7 +145,7 @@
                                 <p class="date">${data[i].user__email}</p>
                                 <p class="date">${data[i].user__homepage}</p>
                                 <button name="fork" onclick="showForm(${data[i].id})">Fork</button>
-                                <button name="expand" onclick="showAnswers(${data[i].id})">Expand</button>
+                                <button id="answers-${data[i].id}" name="expand" onclick="showAnswers(${data[i].id})">${data[i].n_answers} answers</button>
                                 <div class="rating">
                                     <button>
                                         <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
@@ -109,44 +158,7 @@
                             </div>
                             <p>${data[i].text}</p>
                             <a href="media/${data[i].file}">File</a>
-                            <form id="form-${data[i].id}" class="message-form" action="" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div>
-                                    {{ form.username.errors }}
-                                    {{ form.username }}
-
-                                    {{ form.password.errors }}
-                                    {{ form.password }}
-
-                                    {{ form.email.errors }}
-                                    {{ form.email }}
-
-                                    {{ form.homepage.errors }}
-                                    {{ form.homepage }}
-                                </div>
-                                <div>
-                                    {{ form.avatar.errors }}
-                                    {{ form.avatar.label_tag }}
-                                    {{ form.avatar }}
-
-                                    {{ form.attachment.errors }}
-                                    {{ form.attachment.label_tag }}
-                                    {{ form.attachment }}
-
-                                </div>
-                                <span class="format-panel">
-                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'strong')"><strong>Bold</strong></button>
-                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'i')"><i>Italic</i></button>
-                                    <button class="format-btn" type="button" onclick="insertTag(${data[i].id}, 'code')"><code>Code</code></button>
-                                    <button class="format-btn" type="button" onclick="insertSimple(${data[i].id}, 'br')">Break</button>
-                                    <button class="format-btn" type="button" onclick="insertRef(${data[i].id})"><a>Link</a></button>
-                                    <button class="format-btn" type="button" onclick="previewMessage(${data[i].id})">Preview</button>
-                                </span>
-                                {{ form.text.errors }}
-                                {{ form.text }}
-
-                                <button name="prev_post" value="${data[i].id}" type="submit">Reply</button>
-                            </form>
+                            <form id="form-${data[i].id}" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
                             <div id="preview-${data[i].id}"></div>
                             <div id="${data[i].id}"></div>
                         </div>`
@@ -197,10 +209,6 @@
                     `<div class=message>${messageText.value}</div>`
                 );
         };
-
-        showAnswers(0);
-
     </script>
-    <div>1-25</div>
 </body>
 </html>
