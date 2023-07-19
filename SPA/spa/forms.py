@@ -1,7 +1,8 @@
 """SPA forms"""
 from django import forms
 from django.core.validators import FileExtensionValidator
-
+from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 
 
 class MessageForm(forms.Form):
@@ -62,3 +63,5 @@ class MessageForm(forms.Form):
         widget=forms.HiddenInput(
         )
     )
+
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)

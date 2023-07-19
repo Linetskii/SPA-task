@@ -18,6 +18,7 @@ class Post(models.Model):
     """Message model"""
     # id = AutoField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name="children")
     date = models.DateTimeField()
     file = models.FileField(upload_to="attachments/")
     text = BleachField()
@@ -31,3 +32,6 @@ class Post(models.Model):
             print(prev[0].n_answers)
             prev.update(n_answers=(prev[0].n_answers + 1))
         super().save(*args, **kwargs)
+
+    def extension(self):
+        return self.file.name.split('.')[1]

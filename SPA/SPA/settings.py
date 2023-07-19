@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_bleach",
+    "captcha",
     "spa"
 ]
 
@@ -130,11 +131,16 @@ MEDIA_URL = "media/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png', ]
-
-ALLOWED_TEXT_EXTENSIONS = ['txt', ]
-
 BLEACH_ALLOWED_TAGS = ['strong', 'i', 'a', 'br', 'code']
+
 BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title']
+
 BLEACH_STRIP_TAGS = False
+
 BLEACH_STRIP_COMMENTS = False
+
+RECAPTCHA_PUBLIC_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+
+RECAPTCHA_PRIVATE_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']

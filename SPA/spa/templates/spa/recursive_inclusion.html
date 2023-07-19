@@ -1,0 +1,67 @@
+{% load bleach_tags %}
+{% load static %}
+{% for message in page_obj %}
+    <div class="message">
+        <div class="header">
+            <img src="media/{{ message.user.avatar }}"/>
+            <p class="name">{{ message.user.username }}</p>
+            <p class="header_field">>>{{ message.id }}</p>
+            <p class="header_field">{{ message.date }}</p>
+            <p class="header_field">{{ message.user.email }}</p>
+            <p class="header_field">{{ message.user.homepage }}</p>
+            <button name="fork" class="msg_btn" onclick="showForm({{ message.id }})">Add answer</button>
+        </div>
+        <p>{{ message.text|bleach}}</p>
+        {% if message.file %}
+            {% if message.extension == 'txt' %}
+                <a href="media/{{ message.file }}">File</a>
+            {% else %}
+                <img id="img-{{ message.id }}" class="mini-img" src="media/{{ message.file }}" onclick="expandImg('media/{{ message.file }}')"/>
+            {% endif %}
+        {% endif %}
+        <form id="form-{{ message.id }}" class="message-form" action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+                {{ form.username.errors }}
+                {{ form.username }}
+
+                {{ form.password.errors }}
+                {{ form.password }}
+
+                {{ form.email.errors }}
+                {{ form.email }}
+
+                {{ form.homepage.errors }}
+                {{ form.homepage }}
+            </div>
+            <div>
+                {{ form.avatar.errors }}
+                {{ form.avatar.label_tag }}
+                {{ form.avatar }}
+
+                {{ form.attachment.errors }}
+                {{ form.attachment.label_tag }}
+                {{ form.attachment }}
+            </div>
+            <span class="format-panel">
+                <button class="format-btn" type="button" onclick="insertTag({{ message.id }}, 'strong')"><strong>Bold</strong></button>
+                <button class="format-btn" type="button" onclick="insertTag({{ message.id }}, 'i')"><i>Italic</i></button>
+                <button class="format-btn" type="button" onclick="insertTag({{ message.id }}, 'code')"><code>Code</code></button>
+                <button class="format-btn" type="button" onclick="insertSimple({{ message.id }}, 'br')">Break</button>
+                <button class="format-btn" type="button" onclick="insertRef({{ message.id }})"><a>Link</a></button>
+                <button class="format-btn" type="button" onclick="previewMessage({{ message.id }})">Preview</button>
+            </span>
+            {{ form.text.errors }}
+            {{ form.text }}
+            <div style="display: flex; justify-content: center;">{{ form.captcha }}</div>
+            <button name="prev_post" value="{{ message.id }}" type="submit">Reply</button>
+            <div id="preview-{{ message.id }}"></div>
+        </form>
+        <div id="{{ message.id }}">
+            {% if message.children %}
+                {% include 'spa/recursive_inclusion.html' with page_obj=message.children.all %}
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}
+<script type="text/javascript" src="{% static 'js/messages.js' %}"></script>

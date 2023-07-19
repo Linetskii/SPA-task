@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
     {% load bleach_tags %}
+
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <meta charset="UTF-8">
     <title>Comments</title>
 </head>
 <body>
+    <div id="outer" style="display: none; position: absolute; background: rgba(0, 0, 0, 0.9); width: 100%; height: 100%;" onclick="clearPreview()"></div>
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -15,200 +17,76 @@
         {% endfor %}
     </ul>
     {% endif %}
-    <button name="new_message" onclick="showForm(0)">New message</button>
-    <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
-<!--    <div id="preview-0"></div>-->
-<!--    <div id="0"></div>-->
-    {% for message in page_obj %}
-        <div class="message">
-            <div class="header">
-                <img src="media/{{ message.user.avatar }}"/>
-                <p class="name">{{ message.user.username }}</p>
-                <p class="date">>>{{ message.id }}</p>
-                <p class="date">{{ message.date }}</p>
-                <p class="date">{{ message.user.email }}</p>
-                <p class="date">{{ message.user.homepage }}</p>
-                <button name="fork" onclick="showForm({{ message.id }})">Fork</button>
-                <button
-                        id="answers-{{ message.id }}" name="expand" onclick="showAnswers({{ message.id }})"
-                >{{ message.n_answers }} answers</button>
-                <div class="rating">
-                    <button>
-                        <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
-                    </button>
-                    <p>0</p>
-                    <button>
-                        <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
-                    </button>
-                </div>
-            </div>
-            <p>{{ message.text|bleach}}</p>
-            <a href="media/{{ message.file }}">File</a>
-            <form id="form-{{ message.id }}" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
-            <div id="preview-{{ message.id }}"></div>
-            <div id="{{ message.id }}"></div>
+    <div class="top-panel">
+        <button name="new_message" class="msg_btn" onclick="showForm(0)">New message</button>
+        <div>
+            <label>Sort by:
+                <select name="srt" id="srt">Sort by:
+                    <option value="date" label="date"></option>
+                    <option value="user__username" label="username"></option>
+                    <option value="user__email" label="email"></option>
+                </select>
+            </label>
+            <input type="checkbox" id="order" value="desc">
+            <button onclick="sortBy()">Sort</button>
         </div>
-    {% endfor %}
+    </div>
+    <form id="form-0" class="message-form" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            {{ form.username.errors }}
+            {{ form.username }}
+
+            {{ form.password.errors }}
+            {{ form.password }}
+
+            {{ form.email.errors }}
+            {{ form.email }}
+
+            {{ form.homepage.errors }}
+            {{ form.homepage }}
+        </div>
+        <div>
+            {{ form.avatar.errors }}
+            {{ form.avatar.label_tag }}
+            {{ form.avatar }}
+
+            {{ form.attachment.errors }}
+            {{ form.attachment.label_tag }}
+            {{ form.attachment }}
+        </div>
+        <span class="format-panel">
+            <button class="format-btn" type="button" onclick="insertTag(0, 'strong')"><strong>Bold</strong></button>
+            <button class="format-btn" type="button" onclick="insertTag(0, 'i')"><i>Italic</i></button>
+            <button class="format-btn" type="button" onclick="insertTag(0, 'code')"><code>Code</code></button>
+            <button class="format-btn" type="button" onclick="insertSimple(0, 'br')">Break</button>
+            <button class="format-btn" type="button" onclick="insertRef(0)"><a>Link</a></button>
+            <button class="format-btn" type="button" onclick="previewMessage(0)">Preview</button>
+        </span>
+        {{ form.text.errors }}
+        {{ form.text }}
+        {{ form.captcha }}
+        <button name="prev_post" value="0" type="submit">Reply</button>
+        <div id="preview-0"></div>
+    </form>
+        {% include 'spa/recursive_inclusion.html' with page_obj=page_obj %}
     <div class="pagination">
         <span class="step-links">
             {% if page_obj.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                <a href="?page=1&ordering={{ ordering }}">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}&ordering={{ ordering }}">previous</a>
             {% endif %}
 
             <span class="current">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                <a href="?page={{ page_obj.next_page_number }}&ordering={{ ordering }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&ordering={{ ordering }}">last &raquo;</a>
             {% endif %}
         </span>
     </div>
-    <script>
-        "use strict";
-
-        function showForm(id) {
-            const formDOM = document.getElementById("form-" + id);
-            if (formDOM.innerHTML === "") {
-                formDOM.insertAdjacentHTML(
-                "beforeend",
-                `   {% csrf_token %}
-                    <div>
-                        {{ form.username.errors }}
-                        {{ form.username }}
-
-                        {{ form.password.errors }}
-                        {{ form.password }}
-
-                        {{ form.email.errors }}
-                        {{ form.email }}
-
-                        {{ form.homepage.errors }}
-                        {{ form.homepage }}
-                    </div>
-                    <div>
-                        {{ form.avatar.errors }}
-                        {{ form.avatar.label_tag }}
-                        {{ form.avatar }}
-
-                        {{ form.attachment.errors }}
-                        {{ form.attachment.label_tag }}
-                        {{ form.attachment }}
-
-                    </div>
-                    <span class="format-panel">
-                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'strong')"><strong>Bold</strong></button>
-                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'i')"><i>Italic</i></button>
-                        <button class="format-btn" type="button" onclick="insertTag(${id}, 'code')"><code>Code</code></button>
-                        <button class="format-btn" type="button" onclick="insertSimple(${id}, 'br')">Break</button>
-                        <button class="format-btn" type="button" onclick="insertRef(${id})"><a>Link</a></button>
-                        <button class="format-btn" type="button" onclick="previewMessage(${id})">Preview</button>
-                    </span>
-                    {{ form.text.errors }}
-                    {{ form.text }}
-                    <button name="prev_post" value="${id}" type="submit">Reply</button>
-                    <div id="preview-${id}"></div>`
-                );
-            } else {
-                formDOM.innerHTML = "";
-            };
-        };
-
-        async function showAnswers(prev_post) {
-            const url = `answers/?prev_post=${prev_post}`;
-            let data = await fetch(url)
-                .then(response => response.json())
-                .then((data) => {
-                    return data.data;
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-            console.log(data);
-            const expansionDiv = document.getElementById(prev_post);
-            const expandBtn = document.getElementById("expand-" + prev_post);
-            if (expansionDiv.innerHTML !== "") {
-                expansionDiv.innerHTML = "";
-
-            } else {
-                for (let i = 0; i < data.length; i++) {
-                    expansionDiv.insertAdjacentHTML(
-                        "beforeend",
-                        `<div class="message">
-                            <div class="header">
-                                <img src="media/${data[i].user__avatar}"/>
-                                <p class="name">${data[i].user__username}</p>
-                                <p class="date">>>${data[i].id}</p>
-                                <p class="date">${data[i].date}</p>
-                                <p class="date">${data[i].user__email}</p>
-                                <p class="date">${data[i].user__homepage}</p>
-                                <button name="fork" onclick="showForm(${data[i].id})">Fork</button>
-                                <button id="answers-${data[i].id}" name="expand" onclick="showAnswers(${data[i].id})">${data[i].n_answers} answers</button>
-                                <div class="rating">
-                                    <button>
-                                        <img style="transform: rotate(90deg)" src="{% static '/icons/arrow.svg' %}">
-                                    </button>
-                                    <p>0</p>
-                                    <button>
-                                        <img style="transform: rotate(-90deg)" src="{% static '/icons/arrow.svg' %}">
-                                    </button>
-                                </div>
-                            </div>
-                            <p>${data[i].text}</p>
-                            <a href="media/${data[i].file}">File</a>
-                            <form id="form-${data[i].id}" class="message-form" action="" method="post" enctype="multipart/form-data"></form>
-                            <div id="preview-${data[i].id}"></div>
-                            <div id="${data[i].id}"></div>
-                        </div>`
-                    );
-                };
-            };
-        };
-
-        function insertSimple(id, tag) {
-            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
-            let to = messageText.selectionEnd;
-            messageText.value = messageText.value.substring(0, to) + '</' + tag + '>\r\n' + messageText.value.substring((to));
-            messageText.focus();
-            // select the content
-            messageText.setSelectionRange((to + tag.length + 3), (to + tag.length + 3));
-        };
-
-        function insertTag(id, tag) {
-            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
-            let from = messageText.selectionStart;
-            let to = messageText.selectionEnd;
-            let selectedText = messageText.value.substring(from, to);
-            messageText.value = messageText.value.substring(0, from) + '<' + tag + '>' + selectedText + '</' + tag + '>' + messageText.value.substring(to);
-            messageText.focus();
-            // select the content
-            messageText.setSelectionRange((from + tag.length + 2), (to + tag.length + 2));
-        };
-
-        function insertRef(id) {
-            let messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
-            let from = messageText.selectionStart;
-            let to = messageText.selectionEnd;
-            let selectedText = messageText.value.substring(from, to);
-            messageText.value = messageText.value.substring(0, from) + '<a href="' + selectedText + '"></a>' + messageText.value.substring(to);
-            messageText.focus();
-            // set the caret between tags
-            messageText.setSelectionRange((11 + to), (11 + to));
-        };
-
-        function previewMessage(id) {
-            const previewDiv = document.getElementById("preview-" + id);
-            const messageText = document.getElementById("form-" + id).getElementsByTagName('textarea')[0];
-            messageText.focus();
-            messageText.select();
-            previewDiv.innerHTML = ""
-            previewDiv.insertAdjacentHTML(
-                    "afterbegin",
-                    `<div class=message>${messageText.value}</div>`
-                );
-        };
-    </script>
+    <script type="text/javascript" src="{% static 'js/messages.js' %}"></script>
 </body>
 </html>
