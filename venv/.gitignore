@@ -1,0 +1,20 @@
+# Editors
+.idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project files
+SPA/spa/media/attachments
+SPA/spa/media/img
