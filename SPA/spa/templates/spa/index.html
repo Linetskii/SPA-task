@@ -9,7 +9,7 @@
     <title>Comments</title>
 </head>
 <body>
-    <div id="outer" style="display: none; position: absolute; background: rgba(0, 0, 0, 0.9); width: 100%; height: 100%;" onclick="clearPreview()"></div>
+    <div id="outer" style="display: none; position: absolute; background: rgba(0, 0, 0, 0.7); width: 100%; height: 100%;" onclick="clearPreview()"></div>
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -65,7 +65,7 @@
         </span>
         {{ form.text.errors }}
         {{ form.text }}
-        {{ form.captcha }}
+        <div style="display: flex; justify-content: center;">{{ form.captcha }}</div>
         <button name="prev_post" value="0" type="submit">Reply</button>
         <div id="preview-0"></div>
     </form>

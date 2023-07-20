@@ -1,19 +1,18 @@
 """Views for SPA"""
 from datetime import datetime, timezone
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
-from django.views.generic import ListView, View
+from django.views.generic import ListView
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from .forms import MessageForm
 from .models import User, Post
-from django.utils.safestring import mark_safe
 
 
 class IndexView(ListView):
     template_name = 'spa/index.html'
     model = Post
-    paginate_by = 3
+    paginate_by = 25
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related("user").filter(prev_post=0)
@@ -38,7 +37,6 @@ class IndexView(ListView):
             try:
                 user_object = User.objects.get(username=username)
             except ObjectDoesNotExist:
-                messages.add_message(request, messages.INFO, "Authorisation failed")
                 user_object = None
 
             if user_object is None:
@@ -64,6 +62,16 @@ class IndexView(ListView):
             else:
                 if user_object.password == password:
                     user_id = User.objects.get(username=username).id
+
+                    User.objects.update_or_create(
+                        username=c_form.get('username'),
+                        defaults={
+                            "email": c_form.get('email'),
+                            "homepage": c_form.get('homepage'),
+                            "avatar": c_form.get('avatar'),
+                        }
+                    )
+
                     Post.objects.create(
                         user_id=user_id,
                         date=datetime.now(tz=timezone.utc),
@@ -73,6 +81,8 @@ class IndexView(ListView):
                         parent=(None if prev_post == 0 else Post.objects.get(id=prev_post)),
                     )
                     messages.add_message(request, messages.INFO, f"Message sended")
+                else:
+                    messages.add_message(request, messages.INFO, "Authorisation failed")
 
             return HttpResponseRedirect("")
         context = self.get_context_data()
